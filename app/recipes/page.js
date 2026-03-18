@@ -1,48 +1,96 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { supabase } from "../../lib/supabase"
 import Link from "next/link"
-import { createClient } from "@supabase/supabase-js"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
-)
+export default function RecipesPage() {
 
-export default async function RecipesPage() {
+  const [recipes, setRecipes] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const { data: recipes } = await supabase
-    .from("Recipes")
-    .select("*")
-    .order("id", { ascending: false })
+  useEffect(() => {
+
+    async function loadRecipes() {
+
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        setLoading(false)
+        return
+      }
+
+      const { data, error } = await supabase
+        .from("Recipes")
+        .select("*")
+        .eq("user_id", user.id)
+
+      if (error) {
+        console.log(error)
+      }
+
+      setRecipes(data || [])
+      setLoading(false)
+
+    }
+
+    loadRecipes()
+
+  }, [])
+
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-black text-white p-10 max-w-5xl mx-auto">
+        <p>Loading recipes...</p>
+      </main>
+    )
+  }
+
 
   return (
 
-    <main className="min-h-screen bg-black text-white p-10">
+    <main className="min-h-screen bg-black text-white p-10 max-w-5xl mx-auto">
 
-      <h1 className="text-4xl font-bold mb-8">
+      <h1 className="text-3xl font-bold mb-8">
         My Recipes
       </h1>
 
-      <div className="grid grid-cols-3 gap-6">
 
-        {recipes?.map((recipe) => (
+      {recipes.length === 0 && (
+        <p className="text-gray-400">
+          No recipes yet.
+        </p>
+      )}
 
-          <Link key={recipe.id} href={`/recipes/${recipe.id}`}>
 
-            <div className="bg-zinc-900 p-6 rounded-xl hover:bg-zinc-800 cursor-pointer">
+      <div className="grid md:grid-cols-2 gap-6">
 
-              <h2 className="text-xl font-bold mb-2">
-                {recipe.style}
-              </h2>
+        {recipes.map((recipe) => (
 
-              <div className="flex gap-4 text-sm text-gray-400 mb-4">
+          <Link
+            key={recipe.id}
+            href={`/recipes/${recipe.id}`}
+            className="block bg-zinc-900 p-6 rounded-xl hover:bg-zinc-800 transition duration-200"
+          >
 
-                <span>ABV {recipe.abv}</span>
-                <span>IBU {recipe.ibu}</span>
+            <h2 className="text-xl font-bold mb-3">
+              {recipe.style}
+            </h2>
 
-              </div>
+            <div className="flex gap-4 text-sm text-gray-400">
 
-              <p className="text-gray-400 text-sm line-clamp-3">
-                {recipe.flavor_profile}
-              </p>
+              <span>
+                ABV: {recipe.abv}
+              </span>
+
+              <span>
+                IBU: {recipe.ibu}
+              </span>
+
+              <span>
+                OG: {recipe.og}
+              </span>
 
             </div>
 
@@ -55,4 +103,5 @@ export default async function RecipesPage() {
     </main>
 
   )
+
 }

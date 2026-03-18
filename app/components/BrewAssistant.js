@@ -1,13 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { useRecipe } from "@/app/context/RecipeContext"
-import { useRouter } from "next/navigation"
 
-export default function BrewChat({ recipe }) {
-
-  const { setRecipe } = useRecipe()
-  const router = useRouter()
+export default function BrewAssistant({ recipe, step, setSteps, mashTimeRemaining, setNextAction }) {
 
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState("")
@@ -28,80 +23,55 @@ export default function BrewChat({ recipe }) {
     setInput("")
     setLoading(true)
 
-    const res = await fetch("/api/chat",{
+    const res = await fetch("/api/brew-ai",{
+
       method:"POST",
+
       headers:{
         "Content-Type":"application/json"
       },
+
       body:JSON.stringify({
         messages:updatedMessages,
-        recipe
+        recipe,
+        step,
+        mashTimeRemaining
       })
+
     })
 
     const data = await res.json()
 
-    // Spara gamla receptet först
-    const oldRecipe = recipe
-
-    let aiText = data.message
-
-    if(data.recipe_update){
-
-      const newRecipe = data.recipe_update
-
-      let changes = []
-
-      if(oldRecipe.abv !== newRecipe.abv){
-        changes.push(`ABV: ${oldRecipe.abv} → ${newRecipe.abv}`)
-      }
-
-      if(oldRecipe.og !== newRecipe.og){
-        changes.push(`OG: ${oldRecipe.og} → ${newRecipe.og}`)
-      }
-
-      if(oldRecipe.ibu !== newRecipe.ibu){
-        changes.push(`IBU: ${oldRecipe.ibu} → ${newRecipe.ibu}`)
-      }
-
-      // Lägg till changes i texten
-      if(changes.length){
-        aiText += "\n\nÄndringar:\n" + changes.join("\n")
-      }
-
-      setRecipe(newRecipe)
-
-      await fetch("/api/update-recipe",{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify({
-          id: recipe.id,
-          ...newRecipe
-        })
-      })
-
-      router.refresh()
-    }
-
-    // Lägg till meddelandet sist (med changes)
     setMessages(prev => [
+
       ...prev,
+
       {
         role:"assistant",
-        content: aiText
+        content:data.message
       }
+
     ])
 
+    if(data.steps){
+      setSteps(data.steps)
+    }
+
+    if(data.next_action && setNextAction){
+      setNextAction(data.next_action)
+    }
+
     setLoading(false)
+
   }
 
   function handleKey(e){
+
     if(e.key === "Enter" && !e.shiftKey){
       e.preventDefault()
       sendMessage()
     }
+
   }
 
   function clearChat(){
@@ -110,12 +80,12 @@ export default function BrewChat({ recipe }) {
 
   return(
 
-    <div className="flex flex-col h-[600px]">
+    <div className="flex flex-col h-full">
 
       <div className="flex justify-between items-center mb-3">
 
         <h2 className="font-semibold text-lg">
-          BrewAI Recipe Assistant
+          BrewAI Assistant
         </h2>
 
         <button
@@ -125,6 +95,10 @@ export default function BrewChat({ recipe }) {
           Clear
         </button>
 
+      </div>
+
+      <div className="text-xs text-gray-500 mb-3">
+        Current step: <span className="text-amber-400">{step}</span>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-4 pr-1">
@@ -143,7 +117,9 @@ export default function BrewChat({ recipe }) {
                   : "bg-zinc-800 text-gray-200"
               }`}
             >
+
               {m.content}
+
             </div>
 
           </div>
@@ -151,9 +127,11 @@ export default function BrewChat({ recipe }) {
         ))}
 
         {loading &&(
+
           <p className="text-gray-400 text-sm">
             BrewAI tänker...
           </p>
+
         )}
 
       </div>
@@ -164,7 +142,7 @@ export default function BrewChat({ recipe }) {
           value={input}
           onChange={(e)=>setInput(e.target.value)}
           onKeyDown={handleKey}
-          placeholder="Modify the recipe..."
+          placeholder="Fråga BrewAI..."
           className="flex-1 bg-black border border-zinc-700 rounded px-3 py-2 text-sm"
         />
 
