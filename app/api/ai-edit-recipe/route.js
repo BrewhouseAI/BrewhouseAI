@@ -7,7 +7,7 @@ const openai = new OpenAI({
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY // ✅ FIXAD
+  process.env.SUPABASE_KEY
 )
 
 export async function POST(req) {
@@ -51,14 +51,11 @@ Example:
 `
 
   const completion = await openai.chat.completions.create({
-
     model: "gpt-4o-mini",
-
     messages: [
       { role: "system", content: "You are a brewing expert." },
       { role: "user", content: prompt }
     ]
-
   })
 
   const text = completion.choices[0].message.content
