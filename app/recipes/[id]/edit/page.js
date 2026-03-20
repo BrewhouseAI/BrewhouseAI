@@ -3,12 +3,12 @@ import EditForm from "@/app/components/EditForm"
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
+  process.env.SUPABASE_KEY
 )
 
 export default async function EditPage({ params }) {
 
-  const { id } = await params
+  const { id } = params
 
   const { data: recipe } = await supabase
     .from("Recipes")
