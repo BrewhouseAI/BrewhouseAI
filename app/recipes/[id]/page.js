@@ -6,7 +6,7 @@ import { calculateOG, calculateIBU, calculateSRM, hopDatabase } from "@/lib/brew
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
+  process.env.SUPABASE_KEY
 )
 
 export default async function RecipePage({ params }) {
@@ -242,8 +242,8 @@ export default async function RecipePage({ params }) {
         <div>
 
           <div className="sticky top-10 h-fit">
-  <BrewChat recipe={recipe} />
-</div>
+            <BrewChat recipe={recipe} />
+          </div>
 
         </div>
 
