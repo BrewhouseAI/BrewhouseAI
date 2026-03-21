@@ -17,22 +17,17 @@ export default function LoginPage() {
     setLoading(true)
 
     const { error } = await supabase.auth.signInWithPassword({
-
       email,
       password
-
     })
 
     if(error){
-
       alert(error.message)
       setLoading(false)
       return
-
     }
 
     router.push("/")
-
   }
 
   async function signUp(){
@@ -40,21 +35,37 @@ export default function LoginPage() {
     setLoading(true)
 
     const { error } = await supabase.auth.signUp({
-
       email,
       password
-
     })
 
     if(error){
-
       alert(error.message)
       setLoading(false)
       return
-
     }
 
     alert("Account created!")
+    setLoading(false)
+  }
+
+  // 🔥 NY FUNKTION
+  async function resetPassword(){
+
+    if(!email){
+      alert("Enter your email first")
+      return
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: "https://brewhouse-ai.vercel.app/update-password"
+    })
+
+    if(error){
+      alert(error.message)
+    } else {
+      alert("Check your email for reset link")
+    }
 
   }
 
@@ -80,8 +91,16 @@ export default function LoginPage() {
           placeholder="Password"
           value={password}
           onChange={(e)=>setPassword(e.target.value)}
-          className="w-full p-3 mb-6 bg-black border border-zinc-700 rounded"
+          className="w-full p-3 mb-3 bg-black border border-zinc-700 rounded"
         />
+
+        {/* 🔥 NY KNAPP */}
+        <button
+          onClick={resetPassword}
+          className="text-sm text-gray-400 hover:text-white mb-6"
+        >
+          Forgot password?
+        </button>
 
         <button
           onClick={signIn}
