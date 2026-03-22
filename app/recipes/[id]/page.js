@@ -4,12 +4,13 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 import DeleteButton from "@/app/components/DeleteButton"
 import BrewChat from "@/app/components/BrewChat"
+import { useParams } from "next/navigation"
 
 import { calculateOG, calculateIBU, calculateSRM, hopDatabase } from "@/lib/brewCalculations"
 
-export default function RecipePage({ params }) {
+export default function RecipePage() {
 
-  const id = params.id
+  const { id } = useParams()
 
   const [recipe, setRecipe] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -18,7 +19,6 @@ export default function RecipePage({ params }) {
 
     async function loadRecipe() {
 
-      // 🔥 vänta på session (fixar RLS-problem)
       const { data: { session } } = await supabase.auth.getSession()
 
       if (!session) {
@@ -32,14 +32,16 @@ export default function RecipePage({ params }) {
         .eq("id", id)
         .single()
 
-      if (!error) {
+      if (!error && data) {
         setRecipe(data)
       }
 
       setLoading(false)
     }
 
-    loadRecipe()
+    if (id) {
+      loadRecipe()
+    }
 
   }, [id])
 
