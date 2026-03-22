@@ -5,13 +5,13 @@ import BrewChat from "@/app/components/BrewChat"
 import { calculateOG, calculateIBU, calculateSRM, hopDatabase } from "@/lib/brewCalculations"
 
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_KEY
 )
 
 export default async function RecipePage({ params }) {
 
-  const { id } = await params
+  const { id } = params
 
   const { data: recipe } = await supabase
     .from("Recipes")
@@ -27,12 +27,6 @@ export default async function RecipePage({ params }) {
     )
   }
 
-  const { data: batches } = await supabase
-    .from("Batches")
-    .select("*")
-    .eq("recipe_id", id)
-    .order("brew_date", { ascending: false })
-
   const malts = recipe.malts ? JSON.parse(recipe.malts) : []
   const hops = recipe.hops ? JSON.parse(recipe.hops) : []
 
@@ -45,8 +39,6 @@ export default async function RecipePage({ params }) {
     <main className="min-h-screen bg-black text-white p-10 max-w-6xl mx-auto">
 
       <div className="grid grid-cols-3 gap-8">
-
-        {/* LEFT SIDE */}
 
         <div className="col-span-2">
 
@@ -74,9 +66,6 @@ export default async function RecipePage({ params }) {
 
           </div>
 
-
-          {/* STATS */}
-
           <div className="grid grid-cols-5 gap-4 mb-10 text-center">
 
             <div className="bg-zinc-900 p-4 rounded">
@@ -100,7 +89,6 @@ export default async function RecipePage({ params }) {
             </div>
 
             <div className="bg-zinc-900 p-4 rounded">
-
               <div className="text-gray-400 text-sm mb-2">Color</div>
 
               <div
@@ -109,62 +97,32 @@ export default async function RecipePage({ params }) {
               />
 
               <div className="text-xl font-bold">{calculatedSRM} SRM</div>
-
             </div>
 
           </div>
-
-
-          {/* DESCRIPTION */}
 
           <p className="text-gray-300 mb-10">
             {recipe.flavor_profile}
           </p>
 
-
-          {/* INGREDIENTS */}
-
           <div className="grid grid-cols-3 gap-6 mb-10">
 
-            {/* MALTS */}
-
             <div className="bg-zinc-900 p-6 rounded">
-
-              <h2 className="text-xl font-bold mb-4">
-                Malts
-              </h2>
+              <h2 className="text-xl font-bold mb-4">Malts</h2>
 
               <ul className="text-gray-400 space-y-2">
-
-                {malts.map((malt, i) => {
-
-                  if (typeof malt === "string") {
-                    return <li key={i}>{malt}</li>
-                  }
-
-                  return (
-                    <li key={i}>
-                      {malt.name} — {malt.weight}
-                    </li>
-                  )
-
-                })}
-
+                {malts.map((malt, i) => (
+                  typeof malt === "string"
+                    ? <li key={i}>{malt}</li>
+                    : <li key={i}>{malt.name} — {malt.weight}</li>
+                ))}
               </ul>
-
             </div>
 
-
-            {/* HOPS */}
-
             <div className="bg-zinc-900 p-6 rounded">
-
-              <h2 className="text-xl font-bold mb-4">
-                Hops
-              </h2>
+              <h2 className="text-xl font-bold mb-4">Hops</h2>
 
               <ul className="text-gray-400 space-y-4">
-
                 {hops.map((hop, i) => {
 
                   if (typeof hop === "string") {
@@ -184,7 +142,6 @@ export default async function RecipePage({ params }) {
 
                   return (
                     <li key={i}>
-
                       <div className="font-medium text-white">
                         {hop.name}
                       </div>
@@ -192,59 +149,30 @@ export default async function RecipePage({ params }) {
                       <div className="text-sm text-gray-400">
                         {aa}% AA • {hop.weight || hop.amount} • {hop.time}
                       </div>
-
                     </li>
                   )
-
                 })}
-
               </ul>
-
             </div>
 
-
-            {/* YEAST */}
-
             <div className="bg-zinc-900 p-6 rounded">
-
-              <h2 className="text-xl font-bold mb-4">
-                Yeast
-              </h2>
-
-              <p className="text-gray-400">
-                {recipe.yeast}
-              </p>
-
+              <h2 className="text-xl font-bold mb-4">Yeast</h2>
+              <p className="text-gray-400">{recipe.yeast}</p>
             </div>
 
           </div>
 
-
-          {/* BREWING TIPS */}
-
           <div className="bg-zinc-900 p-6 rounded mb-6">
-
-            <h2 className="text-xl font-bold mb-4">
-              Brewing Tips
-            </h2>
-
-            <p className="text-gray-400">
-              {recipe.brewing_tips}
-            </p>
-
+            <h2 className="text-xl font-bold mb-4">Brewing Tips</h2>
+            <p className="text-gray-400">{recipe.brewing_tips}</p>
           </div>
 
         </div>
 
-
-        {/* RIGHT SIDE — AI CHAT */}
-
         <div>
-
           <div className="sticky top-10 h-fit">
             <BrewChat recipe={recipe} />
           </div>
-
         </div>
 
       </div>
