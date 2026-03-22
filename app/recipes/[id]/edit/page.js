@@ -1,23 +1,63 @@
-import { createClient } from "@supabase/supabase-js"
+"use client"
+
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabase"
+import { useParams, useRouter } from "next/navigation"
 import EditForm from "@/app/components/EditForm"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
-)
+export default function EditPage() {
 
-export default async function EditPage({ params }) {
+  const { id } = useParams()
+  const router = useRouter()
 
-  const { id } = params
+  const [recipe, setRecipe] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  const { data: recipe } = await supabase
-    .from("Recipes")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle()
+  useEffect(() => {
+
+    async function loadRecipe() {
+
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session) {
+        router.push("/login")
+        return
+      }
+
+      const { data, error } = await supabase
+        .from("Recipes")
+        .select("*")
+        .eq("id", id)
+        .single()
+
+      if (!error && data) {
+        setRecipe(data)
+      }
+
+      setLoading(false)
+    }
+
+    if (id) {
+      loadRecipe()
+    }
+
+  }, [id])
+
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-black text-white p-10">
+        Loading...
+      </main>
+    )
+  }
 
   if (!recipe) {
-    return <div className="p-10 text-white">Recipe not found</div>
+    return (
+      <main className="min-h-screen bg-black text-white p-10">
+        Recipe not found
+      </main>
+    )
   }
 
   return (
@@ -33,4 +73,5 @@ export default async function EditPage({ params }) {
     </main>
 
   )
+
 }
