@@ -9,7 +9,7 @@ import { calculateOG, calculateIBU, calculateSRM, hopDatabase } from "@/lib/brew
 
 export default function RecipePage({ params }) {
 
-  const { id } = params
+  const id = params.id
 
   const [recipe, setRecipe] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -17,6 +17,14 @@ export default function RecipePage({ params }) {
   useEffect(() => {
 
     async function loadRecipe() {
+
+      // 🔥 vänta på session (fixar RLS-problem)
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session) {
+        setLoading(false)
+        return
+      }
 
       const { data, error } = await supabase
         .from("Recipes")
