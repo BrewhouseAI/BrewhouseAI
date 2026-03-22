@@ -1,12 +1,21 @@
 import { createClient } from "@supabase/supabase-js"
 
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_KEY
 )
 
 export async function POST(req) {
+
   try {
+
+    // 🔥 AUTH CHECK
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return Response.json({ error: "Not authenticated" }, { status: 401 })
+    }
+
     const body = await req.json()
 
     const {
@@ -19,10 +28,10 @@ export async function POST(req) {
       hops,
       yeast,
       flavor_profile,
-      brewing_tips,
-      user_id
+      brewing_tips
     } = body
 
+    // 🔥 user_id sätts på servern (inte från frontend!)
     const { data, error } = await supabase
       .from("Recipes")
       .insert([
@@ -37,7 +46,7 @@ export async function POST(req) {
           yeast,
           flavor_profile,
           brewing_tips,
-          user_id
+          user_id: user.id
         }
       ])
       .select()
@@ -47,7 +56,9 @@ export async function POST(req) {
     }
 
     return Response.json({ success: true, data })
+
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 })
   }
+
 }
