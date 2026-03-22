@@ -1,23 +1,48 @@
-import { createClient } from "@supabase/supabase-js"
+"use client"
+
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabase"
 import DeleteButton from "@/app/components/DeleteButton"
 import BrewChat from "@/app/components/BrewChat"
 
 import { calculateOG, calculateIBU, calculateSRM, hopDatabase } from "@/lib/brewCalculations"
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_KEY
-)
-
-export default async function RecipePage({ params }) {
+export default function RecipePage({ params }) {
 
   const { id } = params
 
-  const { data: recipe } = await supabase
-    .from("Recipes")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle()
+  const [recipe, setRecipe] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+
+    async function loadRecipe() {
+
+      const { data, error } = await supabase
+        .from("Recipes")
+        .select("*")
+        .eq("id", id)
+        .single()
+
+      if (!error) {
+        setRecipe(data)
+      }
+
+      setLoading(false)
+    }
+
+    loadRecipe()
+
+  }, [id])
+
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-black text-white p-10">
+        Loading...
+      </main>
+    )
+  }
 
   if (!recipe) {
     return (
