@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 
 export default function RecipesPage() {
+
+  const router = useRouter()
 
   const [recipes, setRecipes] = useState([])
   const [loading, setLoading] = useState(true)
@@ -15,8 +18,9 @@ export default function RecipesPage() {
 
       const { data: { user } } = await supabase.auth.getUser()
 
+      // 🔥 SKYDD
       if (!user) {
-        setLoading(false)
+        router.push("/login")
         return
       }
 
@@ -38,7 +42,6 @@ export default function RecipesPage() {
 
   }, [])
 
-
   if (loading) {
     return (
       <main className="min-h-screen bg-black text-white p-10 max-w-5xl mx-auto">
@@ -46,7 +49,6 @@ export default function RecipesPage() {
       </main>
     )
   }
-
 
   return (
 
@@ -56,13 +58,11 @@ export default function RecipesPage() {
         My Recipes
       </h1>
 
-
       {recipes.length === 0 && (
         <p className="text-gray-400">
           No recipes yet.
         </p>
       )}
-
 
       <div className="grid md:grid-cols-2 gap-6">
 
@@ -80,17 +80,9 @@ export default function RecipesPage() {
 
             <div className="flex gap-4 text-sm text-gray-400">
 
-              <span>
-                ABV: {recipe.abv}
-              </span>
-
-              <span>
-                IBU: {recipe.ibu}
-              </span>
-
-              <span>
-                OG: {recipe.og}
-              </span>
+              <span>ABV: {recipe.abv}</span>
+              <span>IBU: {recipe.ibu}</span>
+              <span>OG: {recipe.og}</span>
 
             </div>
 
